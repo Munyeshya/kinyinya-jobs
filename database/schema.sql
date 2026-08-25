@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS seekers (
 -- Job postings
 -- status: admin-review workflow (#23). pending -> approved/rejected.
 -- active: whether the employer/system currently treats the posting as
---         open; automatically flipped to 0 once `deadline` passes (#24).
+--         open; automatically flipped to 0 when `deadline` is reached (#24).
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS jobs (
   id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS jobs (
   requirements  TEXT NULL,
   salary_min    INT UNSIGNED NOT NULL DEFAULT 0,
   salary_max    INT UNSIGNED NOT NULL DEFAULT 0,
+  positions_total INT UNSIGNED NOT NULL DEFAULT 1,
   deadline      DATE NOT NULL,
   posted        DATE NOT NULL,
   active        TINYINT(1) NOT NULL DEFAULT 1,

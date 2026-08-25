@@ -17,9 +17,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!kj_csrf_valid($_POST['csrf'] ?? null)) {
         $error = 'The form expired. Refresh the page and try again.';
     } elseif (trim($_POST['title'] ?? '') === '' || trim($_POST['location'] ?? '') === '' || empty($_POST['deadline'])) {
-        $error = 'Job title, location, and deadline are required.';
-    } elseif (strtotime($_POST['deadline']) < strtotime('today')) {
-        $error = 'The deadline must be today or a future date.';
+        $error = 'Job title, location, and expiration date are required.';
+    } elseif (strtotime($_POST['deadline']) <= strtotime('today')) {
+        $error = 'The expiration date must be after today.';
+    } elseif ((int) ($_POST['positions_total'] ?? 0) < 1 || (int) ($_POST['positions_total'] ?? 0) > 999) {
+        $error = 'The number of people needed must be between 1 and 999.';
+    } elseif ((int) $_POST['positions_total'] < (int) ($job['positions_filled'] ?? 0)) {
+        $error = 'The number of people needed cannot be lower than the number already hired.';
     } elseif ($salaryMax && $salaryMax < $salaryMin) {
         $error = 'Maximum salary cannot be lower than minimum salary.';
     } else {
@@ -49,13 +53,14 @@ require __DIR__ . '/../includes/header.php';
   </div>
   <div class="field"><label for="category">Category</label><input id="category" name="category" value="<?= htmlspecialchars($job['category']) ?>"></div>
   <div class="field"><label for="location">Job location</label><input id="location" name="location" required value="<?= htmlspecialchars($job['location'] ?? 'Kinyinya') ?>"></div>
+  <div class="field"><label for="positions_total">Number of people needed</label><input id="positions_total" name="positions_total" type="number" min="1" max="999" required value="<?= max(1, (int) ($job['positions_total'] ?? 1)) ?>"><small><?= (int) ($job['positions_filled'] ?? 0) ?> applicant<?= (int) ($job['positions_filled'] ?? 0) === 1 ? '' : 's' ?> already hired.</small></div>
   <div class="field"><label for="description">Responsibilities</label><textarea id="description" name="description"><?= htmlspecialchars($job['description']) ?></textarea></div>
   <div class="field"><label for="requirements">Requirements</label><textarea id="requirements" name="requirements"><?= htmlspecialchars($job['requirements']) ?></textarea></div>
   <div class="grid-2">
     <div class="field"><label for="salary_min">Minimum salary (RWF)</label><input id="salary_min" name="salary_min" type="number" min="0" value="<?= (int) $job['salary_min'] ?>"></div>
     <div class="field"><label for="salary_max">Maximum salary (RWF)</label><input id="salary_max" name="salary_max" type="number" min="0" value="<?= (int) $job['salary_max'] ?>"></div>
   </div>
-  <div class="field"><label for="deadline">Application deadline</label><input id="deadline" name="deadline" type="date" required value="<?= htmlspecialchars($job['deadline']) ?>"></div>
+  <div class="field"><label for="deadline">Expiration date</label><input id="deadline" name="deadline" type="date" required min="<?= date('Y-m-d', strtotime('+1 day')) ?>" value="<?= htmlspecialchars($job['deadline']) ?>"></div>
   <button class="btn btn-primary" type="submit">Save and resubmit</button>
   <a class="btn btn-ghost" href="dashboard.php">Cancel</a>
 </form>

@@ -10,10 +10,11 @@ See the [role-based user guide](USER_GUIDE.md) for step-by-step instructions for
 
 Everything — employers, seekers, jobs, applications, messages, and notifications — is stored in MySQL. `$_SESSION` is used only for the signed-in user and one-off flash messages. Every change (posting a job, applying, changing a status, approving a posting) is written to the database and remains available across restarts and browsers.
 
-## Two rules baked into the workflow
+## Three rules baked into the workflow
 
 - **Admin approval** — a new job posting starts as `pending` and is invisible to job seekers until an admin approves it from the Pending approvals queue on the admin dashboard.
-- **Automatic expiration** — every posting has a `deadline`. On every request, the app runs `UPDATE jobs SET active = 0 WHERE active = 1 AND deadline < CURDATE()`, so postings close themselves once their deadline passes — no manual step required. (For a posting to close even when nobody is browsing the site, point a daily cron job at the same query — see `kj_expire_jobs()` in `includes/data.php`.)
+- **Automatic expiration** — every posting has an expiration date stored in `deadline`. On every request, the app runs `UPDATE jobs SET active = 0 WHERE active = 1 AND deadline <= CURDATE()`, so a posting turns itself off as soon as that date is reached — no manual step required. (For a posting to close even when nobody is browsing the site, run the same query daily — see `kj_expire_jobs()` in `includes/data.php`.)
+- **Position capacity** — employers set how many people they need. Each application marked `hired` reduces the displayed positions left; at zero, the vacancy is marked filled, disappears from seeker search, and rejects additional applications or hires.
 
 ## Set it up
 
@@ -25,6 +26,8 @@ No source-code edits are required.
 - **XAMPP:** copy the folder to `C:\xampp\htdocs\kinyinya-jobs`, start Apache and MySQL, then open **http://localhost/kinyinya-jobs/setup.php**. XAMPP commonly uses `root` with an empty password.
 
 The installer creates the schema, a dedicated application account, optional demo data, and `includes/local-config.php`. URLs are detected automatically, so the application works at the web root or inside any `htdocs` subfolder. Database environment variables remain supported and take precedence over the generated local configuration.
+
+When upgrading an older configured copy instead of performing a fresh setup, run `php database/run_job_positions_migration.php` once to add the job-capacity column.
 
 ### Manual setup (optional)
 

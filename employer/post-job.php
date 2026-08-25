@@ -12,6 +12,7 @@ $form = [
     'requirements' => '',
     'salary_min' => '',
     'salary_max' => '',
+    'positions_total' => '1',
     'deadline' => date('Y-m-d', strtotime('+30 days')),
 ];
 
@@ -20,9 +21,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!kj_csrf_valid($_POST['csrf'] ?? null)) {
         $formError = 'The form expired. Please try again.';
     } elseif (trim($_POST['title'] ?? '') === '' || trim($_POST['location'] ?? '') === '' || empty($_POST['deadline'])) {
-        $formError = 'Job title, location, and deadline are required.';
-    } elseif (strtotime($_POST['deadline']) < strtotime('today')) {
-        $formError = 'The deadline must be today or a future date.';
+        $formError = 'Job title, location, and expiration date are required.';
+    } elseif (strtotime($_POST['deadline']) <= strtotime('today')) {
+        $formError = 'The expiration date must be after today.';
+    } elseif ((int) ($_POST['positions_total'] ?? 0) < 1 || (int) ($_POST['positions_total'] ?? 0) > 999) {
+        $formError = 'The number of people needed must be between 1 and 999.';
     } elseif ((int) ($_POST['salary_max'] ?? 0) > 0 && (int) ($_POST['salary_max'] ?? 0) < (int) ($_POST['salary_min'] ?? 0)) {
         $formError = 'Maximum salary cannot be lower than minimum salary.';
     } else {
@@ -70,6 +73,11 @@ require __DIR__ . '/../includes/header.php';
     <label for="location">Job location</label>
     <input id="location" name="location" required value="<?= htmlspecialchars($form['location']) ?>" placeholder="e.g. Kinyinya, Gasabo">
   </div>
+  <div class="field">
+    <label for="positions_total">Number of people needed</label>
+    <input id="positions_total" name="positions_total" type="number" min="1" max="999" required value="<?= htmlspecialchars($form['positions_total']) ?>">
+    <small>The job closes automatically after this many applicants are marked hired.</small>
+  </div>
 
   <h3>2. Detailed description</h3>
   <div class="field">
@@ -93,8 +101,8 @@ require __DIR__ . '/../includes/header.php';
     </div>
   </div>
   <div class="field">
-    <label for="deadline">Application deadline</label>
-    <input id="deadline" name="deadline" type="date" value="<?= htmlspecialchars($form['deadline']) ?>">
+    <label for="deadline">Expiration date</label>
+    <input id="deadline" name="deadline" type="date" required min="<?= date('Y-m-d', strtotime('+1 day')) ?>" value="<?= htmlspecialchars($form['deadline']) ?>">
   </div>
 
   <button class="btn btn-primary" type="submit">Submit for approval</button>

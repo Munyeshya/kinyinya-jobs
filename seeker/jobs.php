@@ -88,7 +88,8 @@ require __DIR__ . '/../includes/header.php';
         <span><?= htmlspecialchars($job['type']) ?></span>
         <span><?= htmlspecialchars($job['location']) ?></span>
         <span><?= htmlspecialchars(kj_salary_range($job)) ?></span>
-        <span>Deadline <?= htmlspecialchars($job['deadline']) ?></span>
+        <span><?= kj_job_positions_remaining($job) ?> position<?= kj_job_positions_remaining($job) === 1 ? '' : 's' ?> left</span>
+        <span>Expires <?= htmlspecialchars($job['deadline']) ?></span>
       </div>
       <p><?= htmlspecialchars($job['description']) ?></p>
       <p style="color:var(--ink-soft); font-size:0.85rem;"><strong>Requirements:</strong> <?= htmlspecialchars($job['requirements']) ?></p>

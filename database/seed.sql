@@ -39,35 +39,35 @@ INSERT INTO seekers (id, user_id, name, skills, education, location) VALUES
 (4, 7, 'Jean Bosco Habimana','Masonry, Site Supervision',            'Vocational Diploma',             'Kinyinya'),
 (5, 8, 'Diane Ingabire',     'Graphic Design, Social Media',         'BSc Information Technology',     'Kinyinya');
 
-INSERT INTO jobs (id, employer_id, title, type, category, description, requirements, salary_min, salary_max, deadline, posted, active, status, views) VALUES
+INSERT INTO jobs (id, employer_id, title, type, category, description, requirements, salary_min, salary_max, positions_total, deadline, posted, active, status, views) VALUES
 (101, 1, 'Junior PHP Developer', 'Full-time', 'IT',
  'Maintain and extend internal web applications for local SME clients.',
  'BSc in IT/CS or equivalent experience, PHP, MySQL basics.',
- 250000, 350000, DATE_ADD(CURDATE(), INTERVAL 14 DAY), DATE_SUB(CURDATE(), INTERVAL 20 DAY), 1, 'approved', 84),
+ 250000, 350000, 2, DATE_ADD(CURDATE(), INTERVAL 14 DAY), DATE_SUB(CURDATE(), INTERVAL 20 DAY), 1, 'approved', 84),
 (102, 1, 'IT Support Assistant', 'Part-time', 'IT',
  'First-line support for co-working members: network, printers, basic troubleshooting.',
  'A2/A1 in IT, good communication skills.',
- 120000, 160000, DATE_ADD(CURDATE(), INTERVAL 21 DAY), DATE_SUB(CURDATE(), INTERVAL 18 DAY), 1, 'approved', 51),
+ 120000, 160000, 1, DATE_ADD(CURDATE(), INTERVAL 21 DAY), DATE_SUB(CURDATE(), INTERVAL 18 DAY), 1, 'approved', 51),
 (201, 2, 'Sales Attendant', 'Full-time', 'Retail',
  'Serve customers at the Kinyinya market stall, manage stock rotation.',
  'A2 in any field, prior retail experience a plus.',
- 100000, 140000, DATE_ADD(CURDATE(), INTERVAL 10 DAY), DATE_SUB(CURDATE(), INTERVAL 16 DAY), 1, 'approved', 63),
+ 100000, 140000, 3, DATE_ADD(CURDATE(), INTERVAL 10 DAY), DATE_SUB(CURDATE(), INTERVAL 16 DAY), 1, 'approved', 63),
 (202, 2, 'Inventory Clerk', 'Full-time', 'Retail',
  'Track incoming and outgoing stock across two storage sites.',
  'Basic bookkeeping, comfortable with mobile apps.',
- 130000, 170000, DATE_ADD(CURDATE(), INTERVAL 30 DAY), DATE_SUB(CURDATE(), INTERVAL 14 DAY), 1, 'approved', 39),
+ 130000, 170000, 2, DATE_ADD(CURDATE(), INTERVAL 30 DAY), DATE_SUB(CURDATE(), INTERVAL 14 DAY), 1, 'approved', 39),
 (301, 3, 'Mason (Skilled)', 'Contract', 'Construction',
  'Skilled mason needed for a residential project in Kinyinya, 3-month contract.',
  '3+ years masonry experience, own basic tools.',
- 180000, 220000, DATE_SUB(CURDATE(), INTERVAL 5 DAY), DATE_SUB(CURDATE(), INTERVAL 35 DAY), 0, 'approved', 47),
+ 180000, 220000, 5, DATE_SUB(CURDATE(), INTERVAL 5 DAY), DATE_SUB(CURDATE(), INTERVAL 35 DAY), 0, 'approved', 47),
 (302, 3, 'Site Supervisor', 'Full-time', 'Construction',
  'Oversee daily site activity, labor scheduling and safety compliance.',
  'Vocational diploma in construction or 5+ years site experience.',
- 220000, 280000, DATE_ADD(CURDATE(), INTERVAL 18 DAY), DATE_SUB(CURDATE(), INTERVAL 12 DAY), 1, 'approved', 28),
+ 220000, 280000, 1, DATE_ADD(CURDATE(), INTERVAL 18 DAY), DATE_SUB(CURDATE(), INTERVAL 12 DAY), 1, 'approved', 28),
 (303, 3, 'Electrician (Apprentice)', 'Contract', 'Construction',
  'Assist licensed electricians on residential wiring jobs across Kinyinya.',
  'Basic electrical training, willingness to learn on the job.',
- 90000, 120000, DATE_ADD(CURDATE(), INTERVAL 40 DAY), DATE_SUB(CURDATE(), INTERVAL 2 DAY), 1, 'pending', 0);
+ 90000, 120000, 4, DATE_ADD(CURDATE(), INTERVAL 40 DAY), DATE_SUB(CURDATE(), INTERVAL 2 DAY), 1, 'pending', 0);
 
 INSERT INTO applications (id, job_id, seeker_id, date, status, cover_letter) VALUES
 (1, 101, 2, DATE_SUB(CURDATE(), INTERVAL 12 DAY), 'shortlisted',  'I have built two small business websites and I am eager to grow with a local team.'),

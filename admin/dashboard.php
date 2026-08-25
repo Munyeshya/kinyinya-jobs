@@ -28,9 +28,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['job_id'], $_POST['act
             : 'Job posting rejected — it will not be shown to job seekers.';
     } else {
         $reviewedJob = kj_job($jobId);
-        $_SESSION['flash'] = $action === 'approved' && $reviewedJob && kj_job_is_expired($reviewedJob)
-            ? 'That posting cannot be approved because its deadline has passed. Ask the employer to edit and resubmit it.'
-            : 'That posting could not be updated.';
+        if ($action === 'approved' && $reviewedJob && kj_job_is_expired($reviewedJob)) {
+            $_SESSION['flash'] = 'That posting cannot be approved because its expiration date was reached. Ask the employer to edit and resubmit it.';
+        } elseif ($action === 'approved' && $reviewedJob && kj_job_is_filled($reviewedJob)) {
+            $_SESSION['flash'] = 'That posting has no positions left. Ask the employer to increase the number needed before resubmitting it.';
+        } else {
+            $_SESSION['flash'] = 'That posting could not be updated.';
+        }
     }
     header('Location: dashboard.php');
     exit;
@@ -90,7 +94,8 @@ require __DIR__ . '/../includes/header.php';
         <span><?= htmlspecialchars($job['type']) ?></span>
         <span><?= htmlspecialchars($job['location']) ?></span>
         <span><?= htmlspecialchars(kj_salary_range($job)) ?></span>
-        <span>Deadline <?= htmlspecialchars($job['deadline']) ?></span>
+        <span><?= max(1, (int) $job['positions_total']) ?> needed · <?= kj_job_positions_remaining($job) ?> left</span>
+        <span>Expires <?= htmlspecialchars($job['deadline']) ?></span>
         <span class="badge under_review">Pending review</span>
       </div>
       <p><?= htmlspecialchars($job['description']) ?></p>

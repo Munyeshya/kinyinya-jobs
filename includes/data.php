@@ -30,20 +30,24 @@ kj_expire_jobs();
 // Jobs
 // ---------------------------------------------------------------------
 
+function kj_job_select_sql(): string {
+    return "SELECT j.*, (SELECT COUNT(*) FROM applications a WHERE a.job_id = j.id AND a.status = 'hired') AS positions_filled FROM jobs j";
+}
+
 function kj_jobs(): array {
-    $rows = kj_db()->query('SELECT * FROM jobs ORDER BY posted DESC, id DESC')->fetchAll();
+    $rows = kj_db()->query(kj_job_select_sql() . ' ORDER BY j.posted DESC, j.id DESC')->fetchAll();
     return kj_index_by_id($rows);
 }
 
 function kj_job($id) {
-    $stmt = kj_db()->prepare('SELECT * FROM jobs WHERE id = ?');
+    $stmt = kj_db()->prepare(kj_job_select_sql() . ' WHERE j.id = ?');
     $stmt->execute([(int) $id]);
     $row = $stmt->fetch();
     return $row ?: null;
 }
 
 function kj_jobs_for_employer($employer_id): array {
-    $stmt = kj_db()->prepare('SELECT * FROM jobs WHERE employer_id = ? ORDER BY posted DESC, id DESC');
+    $stmt = kj_db()->prepare(kj_job_select_sql() . ' WHERE j.employer_id = ? ORDER BY j.posted DESC, j.id DESC');
     $stmt->execute([(int) $employer_id]);
     return kj_index_by_id($stmt->fetchAll());
 }
@@ -55,8 +59,8 @@ function kj_jobs_for_employer($employer_id): array {
 function kj_job_create(int $employer_id, array $data): int {
     $stmt = kj_db()->prepare(
         'INSERT INTO jobs (employer_id, title, type, category, location, description, requirements,
-                            salary_min, salary_max, deadline, posted, active, status, views)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, \'pending\', 0)'
+                            salary_min, salary_max, positions_total, deadline, posted, active, status, views)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, \'pending\', 0)'
     );
     $stmt->execute([
         $employer_id,
@@ -68,6 +72,7 @@ function kj_job_create(int $employer_id, array $data): int {
         trim($data['requirements'] ?? ''),
         max(0, (int) ($data['salary_min'] ?? 0)),
         max(0, (int) ($data['salary_max'] ?? 0)),
+        min(999, max(1, (int) ($data['positions_total'] ?? 1))),
         $data['deadline'] ?? date('Y-m-d', strtotime('+30 days')),
         date('Y-m-d'),
     ]);
@@ -75,13 +80,13 @@ function kj_job_create(int $employer_id, array $data): int {
 }
 
 function kj_jobs_pending(): array {
-    return kj_index_by_id(kj_db()->query("SELECT * FROM jobs WHERE status = 'pending' ORDER BY posted DESC, id DESC")->fetchAll());
+    return kj_index_by_id(kj_db()->query(kj_job_select_sql() . " WHERE j.status = 'pending' ORDER BY j.posted DESC, j.id DESC")->fetchAll());
 }
 
 function kj_job_set_status(int $job_id, string $status): bool {
     if (!in_array($status, ['pending', 'approved', 'rejected'], true)) return false;
     $job = kj_job($job_id);
-    if (!$job || ($status === 'approved' && kj_job_is_expired($job))) return false;
+    if (!$job || ($status === 'approved' && (kj_job_is_expired($job) || kj_job_is_filled($job)))) return false;
     $stmt = kj_db()->prepare('UPDATE jobs SET status = ? WHERE id = ?');
     $stmt->execute([$status, $job_id]);
     if ($stmt->rowCount() === 0) return false;
@@ -99,7 +104,7 @@ function kj_job_set_status(int $job_id, string $status): bool {
 function kj_job_update_for_employer(int $job_id, int $employer_id, array $data): bool {
     $stmt = kj_db()->prepare(
         'UPDATE jobs SET title = ?, type = ?, category = ?, location = ?, description = ?, requirements = ?,
-                         salary_min = ?, salary_max = ?, deadline = ?, active = 1, status = \'pending\'
+                         salary_min = ?, salary_max = ?, positions_total = ?, deadline = ?, active = 1, status = \'pending\'
          WHERE id = ? AND employer_id = ?'
     );
     $stmt->execute([
@@ -111,6 +116,7 @@ function kj_job_update_for_employer(int $job_id, int $employer_id, array $data):
         trim($data['requirements'] ?? ''),
         max(0, (int) ($data['salary_min'] ?? 0)),
         max(0, (int) ($data['salary_max'] ?? 0)),
+        min(999, max(1, (int) ($data['positions_total'] ?? 1))),
         $data['deadline'] ?? date('Y-m-d'),
         $job_id,
         $employer_id,
@@ -126,7 +132,10 @@ function kj_job_record_view(int $job_id): void {
 }
 
 function kj_job_set_active_for_employer(int $job_id, int $employer_id, bool $active): bool {
-    $stmt = kj_db()->prepare('UPDATE jobs SET active = ? WHERE id = ? AND employer_id = ? AND deadline >= CURDATE()');
+    $stmt = kj_db()->prepare(
+        "UPDATE jobs SET active = ? WHERE id = ? AND employer_id = ? AND deadline > CURDATE()
+         AND positions_total > (SELECT COUNT(*) FROM applications WHERE job_id = jobs.id AND status = 'hired')"
+    );
     $stmt->execute([$active ? 1 : 0, $job_id, $employer_id]);
     return $stmt->rowCount() > 0;
 }
@@ -134,33 +143,53 @@ function kj_job_set_active_for_employer(int $job_id, int $employer_id, bool $act
 /**
  * #24 — Automatic job expiration.
  * Runs once per request, before any page reads job data, so any posting
- * whose deadline has passed is closed automatically — no manual step
+ * whose expiration date has been reached is closed automatically — no manual step
  * needed from the employer or admin. In production this can additionally
  * run as a daily cron hitting the same UPDATE, so postings close even
  * when nobody is browsing the site.
  */
 function kj_expire_jobs(): void {
-    kj_db()->exec("UPDATE jobs SET active = 0 WHERE active = 1 AND deadline < CURDATE()");
+    kj_db()->exec("UPDATE jobs SET active = 0 WHERE active = 1 AND deadline <= CURDATE()");
 }
 
 function kj_job_is_expired($job): bool {
-    return strtotime($job['deadline']) < strtotime('today');
+    return strtotime($job['deadline']) <= strtotime('today');
+}
+
+function kj_job_positions_remaining(array $job): int {
+    $total = max(1, (int) ($job['positions_total'] ?? 1));
+    if (array_key_exists('positions_filled', $job)) {
+        $filled = max(0, (int) $job['positions_filled']);
+    } elseif (!empty($job['id'])) {
+        $stmt = kj_db()->prepare("SELECT COUNT(*) FROM applications WHERE job_id = ? AND status = 'hired'");
+        $stmt->execute([(int) ($job['id'] ?? 0)]);
+        $filled = (int) $stmt->fetchColumn();
+    } else {
+        $filled = 0;
+    }
+    return max(0, $total - $filled);
+}
+
+function kj_job_is_filled(array $job): bool {
+    return kj_job_positions_remaining($job) === 0;
 }
 
 function kj_job_is_visible($job): bool {
-    return (bool) $job['active'] && $job['status'] === 'approved' && !kj_job_is_expired($job);
+    return (bool) $job['active'] && $job['status'] === 'approved' && !kj_job_is_expired($job) && !kj_job_is_filled($job);
 }
 
 function kj_job_status_label($job): string {
     if ($job['status'] === 'pending')  return 'Pending admin review';
     if ($job['status'] === 'rejected') return 'Rejected by admin';
     if (kj_job_is_expired($job)) return 'Expired';
+    if (kj_job_is_filled($job)) return 'Filled';
     return $job['active'] ? 'Active' : 'Closed';
 }
 
 function kj_job_status_class($job): string {
     if ($job['status'] === 'pending')  return 'under_review';
     if ($job['status'] === 'rejected') return 'rejected';
+    if (kj_job_is_filled($job)) return 'hired';
     if (kj_job_is_expired($job) || !$job['active']) return 'expired';
     return 'active';
 }
@@ -283,10 +312,16 @@ function kj_application_create(int $seeker_id, int $job_id, string $cover_letter
 /** Updates an application's status, scoped to a job so an employer can only edit their own postings' applicants. */
 function kj_application_set_status(int $application_id, int $job_id, string $status): bool {
     if (!in_array($status, ['submitted', 'under_review', 'shortlisted', 'hired', 'rejected'], true)) return false;
-    $check = kj_db()->prepare('SELECT a.seeker_id, j.title FROM applications a JOIN jobs j ON j.id = a.job_id WHERE a.id = ? AND a.job_id = ?');
+    $check = kj_db()->prepare('SELECT a.seeker_id, a.status AS current_status, j.title, j.positions_total FROM applications a JOIN jobs j ON j.id = a.job_id WHERE a.id = ? AND a.job_id = ?');
     $check->execute([$application_id, $job_id]);
     $application = $check->fetch();
     if (!$application) return false;
+
+    if ($status === 'hired' && $application['current_status'] !== 'hired') {
+        $filled = kj_db()->prepare("SELECT COUNT(*) FROM applications WHERE job_id = ? AND status = 'hired'");
+        $filled->execute([$job_id]);
+        if ((int) $filled->fetchColumn() >= max(1, (int) $application['positions_total'])) return false;
+    }
 
     $stmt = kj_db()->prepare('UPDATE applications SET status = ? WHERE id = ? AND job_id = ?');
     $stmt->execute([$status, $application_id, $job_id]);

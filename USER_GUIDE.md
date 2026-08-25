@@ -62,9 +62,9 @@ An uploaded CV can be opened through **View uploaded CV**. Uploading a new CV re
    - Location
 3. Select **Search**.
 4. Use **Reset** to remove all filters.
-5. Select **View and apply** on a vacancy to read its full description, requirements, salary range, location, and deadline.
+5. Select **View and apply** on a vacancy to read its full description, requirements, salary range, positions left, location, and expiration date.
 
-Only administrator-approved vacancies that are open and have not passed their deadline are displayed.
+Only administrator-approved vacancies that are open and whose expiration date has not been reached are displayed.
 
 ### 3. Apply for a vacancy
 
@@ -110,10 +110,11 @@ The **Message** action becomes available when an application is **Shortlisted** 
    - Description
    - Requirements
    - Minimum and maximum salary
-   - Application deadline
+   - Number of people needed
+   - Expiration date
 3. Select **Submit for approval**.
 
-The deadline cannot be in the past, and the maximum salary cannot be lower than the minimum salary. Every new vacancy remains **Pending** until an administrator approves or rejects it.
+The expiration date must be after today, and the maximum salary cannot be lower than the minimum salary. Every new vacancy remains **Pending** until an administrator approves or rejects it.
 
 ### 3. Manage vacancies
 
@@ -123,10 +124,11 @@ The Employer Dashboard lists all company vacancies and their visibility status.
 - An edited vacancy returns to **Pending** so an administrator can approve the updated information before it becomes public again.
 - Select **Close** to stop receiving applications.
 - Select **Reopen** to make a manually closed vacancy available again.
-- Expired vacancies close automatically and cannot be reopened without changing the deadline.
+- A vacancy turns itself off when its expiration date is reached and cannot be reopened without changing that date.
 - Select **Review applicants** to see applications for a vacancy.
+- The dashboard shows the total positions and how many are still available.
 
-A rejected or pending vacancy is not visible to job seekers.
+A rejected, pending, expired, closed, or fully filled vacancy is not visible to job seekers.
 
 ### 4. Review applicants
 
@@ -138,6 +140,7 @@ A rejected or pending vacancy is not visible to job seekers.
 6. Choose the appropriate application status and select **Update status**.
 
 Updating a status creates an in-platform notification for the job seeker.
+Marking an applicant **Hired** reduces the positions left. When no positions remain, the job is marked **Filled**, disappears from seeker searches, and no additional applicant can be marked hired. Increasing the number needed through **Edit** can create openings again, subject to administrator reapproval.
 
 ### 5. Message an applicant
 
@@ -156,7 +159,7 @@ Administrator accounts are created during system setup or directly by an authori
 1. Sign in with an Administrator account.
 2. Open **Overview**.
 3. Review the **Pending approvals** section.
-4. Read the vacancy title, employer, category, type, location, salary, description, requirements, and deadline.
+4. Read the vacancy title, employer, category, type, number needed, positions left, location, salary, description, requirements, and expiration date.
 5. Select **Approve** to make the vacancy visible to job seekers.
 6. Select **Reject** to keep the vacancy hidden.
 
@@ -196,7 +199,7 @@ Check the email and password. The same message is shown for incorrect credential
 
 ### My vacancy is not visible
 
-It may still be pending approval, may have been rejected, manually closed, or may have passed its deadline. Check the status shown on the Employer Dashboard.
+It may still be pending approval, may have been rejected, manually closed, may have reached its expiration date, or all available positions may already be filled. Check the status shown on the Employer Dashboard.
 
 ### I cannot apply again
 

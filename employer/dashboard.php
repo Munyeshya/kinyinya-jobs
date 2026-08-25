@@ -87,7 +87,8 @@ require __DIR__ . '/../includes/header.php';
       <div class="meta">
         <span><?= htmlspecialchars($job['type']) ?></span>
         <span><?= htmlspecialchars($job['location']) ?></span>
-        <span>Deadline <?= htmlspecialchars($job['deadline']) ?></span>
+        <span>Expires <?= htmlspecialchars($job['deadline']) ?></span>
+        <span><?= kj_job_positions_remaining($job) ?> of <?= max(1, (int) $job['positions_total']) ?> position<?= (int) $job['positions_total'] === 1 ? '' : 's' ?> left</span>
         <span><?= $job['views'] ?> views</span>
         <span class="badge <?= kj_job_status_class($job) ?>"><?= kj_job_status_label($job) ?></span>
       </div>
@@ -96,7 +97,9 @@ require __DIR__ . '/../includes/header.php';
       <?php elseif ($job['status'] === 'rejected'): ?>
         <p style="color:var(--brick-600); font-size:0.85rem; margin-top:6px;">This posting did not pass admin review and is not visible to job seekers.</p>
       <?php elseif (kj_job_is_expired($job)): ?>
-        <p style="color:var(--ink-soft); font-size:0.85rem; margin-top:6px;">Past its deadline — closed automatically and no longer visible to job seekers.</p>
+        <p style="color:var(--ink-soft); font-size:0.85rem; margin-top:6px;">Its expiration date was reached — closed automatically and no longer visible to job seekers.</p>
+      <?php elseif (kj_job_is_filled($job)): ?>
+        <p style="color:var(--green-700); font-size:0.85rem; margin-top:6px;">All positions are filled — this posting is no longer visible to job seekers.</p>
       <?php endif; ?>
     </div>
     <div class="actions">
@@ -105,6 +108,8 @@ require __DIR__ . '/../includes/header.php';
       <a class="btn btn-ghost btn-sm" href="edit-job.php?id=<?= $job['id'] ?>">Edit</a>
       <?php if (kj_job_is_expired($job)): ?>
         <span class="badge expired">Expired</span>
+      <?php elseif (kj_job_is_filled($job)): ?>
+        <span class="badge hired">Filled</span>
       <?php elseif ($job['active']): ?>
         <form method="post">
           <input type="hidden" name="csrf" value="<?= htmlspecialchars(kj_csrf_token()) ?>">

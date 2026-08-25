@@ -18,13 +18,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['application_id'], $_P
     } elseif (kj_application_set_status($appId, $jobId, $_POST['status'])) {
         $_SESSION['flash'] = 'Applicant status updated.';
     } else {
-        $_SESSION['flash'] = 'No application status change was made.';
+        $_SESSION['flash'] = $_POST['status'] === 'hired' && kj_job_is_filled(kj_job($jobId))
+            ? 'No positions remain. Increase the number of people needed before hiring another applicant.'
+            : 'No application status change was made.';
     }
     header("Location: applicants.php?job_id=$jobId");
     exit;
 }
 
 $apps = kj_applications_for_job($jobId);
+$positionsRemaining = kj_job_positions_remaining($job);
 usort($apps, fn($a, $b) => strcmp($b['date'], $a['date']));
 
 $keyword = trim($_GET['q'] ?? '');
@@ -54,6 +57,7 @@ require __DIR__ . '/../includes/header.php';
 <section class="pagehead">
   <p class="eyebrow">Employer · <?= htmlspecialchars($job['title']) ?></p>
   <h1>Applicants (<?= count($apps) ?>)</h1>
+  <p><?= max(1, (int) $job['positions_total']) ?> needed · <?= (int) ($job['positions_filled'] ?? 0) ?> hired · <?= $positionsRemaining ?> position<?= $positionsRemaining === 1 ? '' : 's' ?> left</p>
   <p><a href="dashboard.php">&larr; Back to dashboard</a></p>
 </section>
 
@@ -105,7 +109,7 @@ require __DIR__ . '/../includes/header.php';
           <div class="field">
             <select name="status">
               <?php foreach ($statuses as $s): ?>
-                <option value="<?= $s ?>" <?= $s === $a['status'] ? 'selected' : '' ?>><?= kj_status_label($s) ?></option>
+                <option value="<?= $s ?>" <?= $s === $a['status'] ? 'selected' : '' ?> <?= $s === 'hired' && $positionsRemaining === 0 && $a['status'] !== 'hired' ? 'disabled' : '' ?>><?= kj_status_label($s) ?></option>
               <?php endforeach; ?>
             </select>
           </div>
