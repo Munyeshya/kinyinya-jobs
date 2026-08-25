@@ -58,6 +58,7 @@ require __DIR__ . '/../includes/header.php';
 </section>
 
 <form method="get" class="card compact-filter">
+  <input type="hidden" name="job_id" value="<?= $jobId ?>">
   <div class="grid-2">
     <div class="field"><label for="q">Search applicant</label><input id="q" name="q" value="<?= htmlspecialchars($keyword) ?>" placeholder="Name or skill"></div>
     <div class="field"><label for="education">Education level</label><select id="education" name="education"><option value="">All education levels</option><?php foreach ($educationLevels as $level): ?><option value="<?= htmlspecialchars($level) ?>" <?= $education === $level ? 'selected' : '' ?>><?= htmlspecialchars($level) ?></option><?php endforeach; ?></select></div>

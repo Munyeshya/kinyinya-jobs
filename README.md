@@ -6,6 +6,8 @@ A multi-role dashboard for the Job Matching and Recruitment Platform (Umurenge K
 - **Employer** — post vacancies (pending admin approval), see applicants per posting, update application status
 - **Admin** — review and approve/reject new postings, platform-wide stats (users, postings, applications by status/category)
 
+See the [role-based user guide](USER_GUIDE.md) for step-by-step instructions for job seekers, employers, and administrators.
+
 Everything — employers, seekers, jobs, applications, messages, and notifications — is stored in MySQL. `$_SESSION` is used only for the signed-in user and one-off flash messages. Every change (posting a job, applying, changing a status, approving a posting) is written to the database and remains available across restarts and browsers.
 
 ## Two rules baked into the workflow
