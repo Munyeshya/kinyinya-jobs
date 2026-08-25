@@ -80,7 +80,7 @@ require __DIR__ . '/../includes/header.php';
   <div class="empty">No applicants match the selected filters.</div>
 <?php endif; ?>
 
-<?php foreach ($apps as $a): $seeker = kj_seeker($a['seeker_id']); ?>
+<?php foreach ($apps as $a): $seeker = kj_seeker($a['seeker_id']); $hasPdfResume = !empty($seeker['resume_url']) && strtolower(pathinfo($seeker['resume_url'], PATHINFO_EXTENSION)) === 'pdf'; ?>
   <div class="card">
     <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px;">
       <div>
@@ -95,8 +95,10 @@ require __DIR__ . '/../includes/header.php';
         <?php else: ?>
           <p style="color:var(--ink-soft); font-size:.82rem;">No cover letter provided.</p>
         <?php endif; ?>
-        <?php if (!empty($seeker['resume_url'])): ?>
-          <p><a class="btn btn-ghost btn-sm" href="<?= htmlspecialchars(kj_url('resume.php?application_id=' . $a['id'])) ?>" target="_blank" rel="noopener">View CV</a></p>
+        <?php if ($hasPdfResume): ?>
+          <p><a class="btn btn-ghost btn-sm" href="<?= htmlspecialchars(kj_url('resume.php?application_id=' . $a['id'])) ?>">View CV inside system</a></p>
+        <?php elseif (!empty($seeker['resume_url'])): ?>
+          <p style="color:var(--ink-soft); font-size:.82rem;">The applicant must replace their CV with a PDF before it can be viewed.</p>
         <?php else: ?>
           <p style="color:var(--ink-soft); font-size:.82rem;">No CV uploaded.</p>
         <?php endif; ?>

@@ -19,17 +19,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'The CV upload could not be completed.';
         } elseif ($file['size'] > 5 * 1024 * 1024) {
             $error = 'The CV must be 5 MB or smaller.';
-        } elseif (!in_array($extension, ['pdf', 'doc', 'docx'], true)) {
-            $error = 'Upload a PDF, DOC, or DOCX file.';
+        } elseif ($extension !== 'pdf') {
+            $error = 'Upload a PDF file only.';
         } else {
-            $directory = __DIR__ . '/../uploads/resumes';
-            if (!is_dir($directory)) @mkdir($directory, 0775, true);
-            $filename = 'seeker-' . (int) $seeker['id'] . '-' . bin2hex(random_bytes(10)) . '.' . $extension;
-            $uploadedResumePath = $directory . '/' . $filename;
-            if (move_uploaded_file($file['tmp_name'], $uploadedResumePath)) {
-                $uploadedResumeUrl = 'uploads/resumes/' . $filename;
+            if (!kj_is_pdf_file($file['tmp_name'])) {
+                $error = 'The selected file is not a valid PDF.';
             } else {
-                $error = 'The CV could not be saved. Check the uploads folder permissions.';
+                $directory = __DIR__ . '/../uploads/resumes';
+                if (!is_dir($directory)) @mkdir($directory, 0775, true);
+                $filename = 'seeker-' . (int) $seeker['id'] . '-' . bin2hex(random_bytes(10)) . '.pdf';
+                $uploadedResumePath = $directory . '/' . $filename;
+                if (move_uploaded_file($file['tmp_name'], $uploadedResumePath)) {
+                    $uploadedResumeUrl = 'uploads/resumes/' . $filename;
+                } else {
+                    $error = 'The CV could not be saved. Check the uploads folder permissions.';
+                }
             }
         }
     }
@@ -55,6 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 $seeker = kj_current_user();
+$hasPdfResume = !empty($seeker['resume_url']) && strtolower(pathinfo($seeker['resume_url'], PATHINFO_EXTENSION)) === 'pdf';
 $pageTitle = 'My profile - Kinyinya Jobs';
 require __DIR__ . '/../includes/header.php';
 ?>
@@ -75,10 +80,14 @@ require __DIR__ . '/../includes/header.php';
   <div class="field"><label for="skills">Skills</label><textarea id="skills" name="skills" placeholder="List relevant skills separated by commas"><?= htmlspecialchars($seeker['skills']) ?></textarea></div>
   <div class="field">
     <label for="resume">CV / Resume</label>
-    <input id="resume" name="resume" type="file" accept=".pdf,.doc,.docx">
-    <small>Optional. PDF, DOC, or DOCX up to 5 MB. A new file replaces the current one.</small>
+    <input id="resume" name="resume" type="file" accept=".pdf,application/pdf">
+    <small>Optional. PDF only, up to 5 MB. A new file replaces the current one.</small>
     <?php if (!empty($seeker['resume_url'])): ?>
-      <p><a href="<?= htmlspecialchars(kj_url('resume.php?seeker_id=' . $seeker['id'])) ?>" target="_blank" rel="noopener">View uploaded CV</a></p>
+      <?php if ($hasPdfResume): ?>
+        <p><a href="<?= htmlspecialchars(kj_url('resume.php?seeker_id=' . $seeker['id'])) ?>">View CV inside the system</a></p>
+      <?php else: ?>
+        <p class="field-note warning">The current CV is not a PDF. Replace it to use the in-system viewer.</p>
+      <?php endif; ?>
       <label class="check-option"><input type="checkbox" name="remove_resume" value="1"> Remove current CV</label>
     <?php endif; ?>
   </div>

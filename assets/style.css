@@ -150,6 +150,10 @@ table.kj tr:last-child td { border-bottom: none; }
 .field small { display: block; margin-top: 4px; color: var(--ink-soft); }
 .check-option { display: inline-flex !important; align-items: center; gap: 8px; font-weight: 500 !important; }
 .check-option input { width: auto; }
+.field-note.warning { color: var(--brick-600); }
+.pdf-viewer-card { padding: 0; overflow: hidden; }
+.pdf-viewer { display: block; width: 100%; height: min(76vh, 900px); min-height: 540px; border: 0; background: var(--line); }
+@media (max-width: 640px) { .pdf-viewer { height: 70vh; min-height: 430px; } }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 @media (max-width: 640px) { .grid-2 { grid-template-columns: 1fr; } }
 

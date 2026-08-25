@@ -503,3 +503,12 @@ function kj_salary_range(array $job): string {
     if ($maximum === 0) return 'From ' . kj_money($minimum);
     return kj_money($minimum) . ' - ' . kj_money($maximum);
 }
+
+function kj_is_pdf_file(string $path): bool {
+    if ($path === '' || !is_file($path)) return false;
+    $stream = @fopen($path, 'rb');
+    if (!$stream) return false;
+    $signature = fread($stream, 5);
+    fclose($stream);
+    return $signature === '%PDF-';
+}

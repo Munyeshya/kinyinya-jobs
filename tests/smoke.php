@@ -35,6 +35,13 @@ $passwordHash = password_hash('smoke-password', PASSWORD_DEFAULT);
 $check('Passwords use secure hashes', password_verify('smoke-password', $passwordHash) && !password_verify('wrong-password', $passwordHash));
 $check('Unspecified salary has a clear label', kj_salary_range(['salary_min' => 0, 'salary_max' => 0]) === 'Salary not specified');
 $check('Remaining positions are calculated', kj_job_positions_remaining(['positions_total' => 3, 'positions_filled' => 1]) === 2);
+$pdfTestFile = tempnam(sys_get_temp_dir(), 'kj-pdf-');
+file_put_contents($pdfTestFile, "%PDF-1.4\n");
+$validPdfDetected = kj_is_pdf_file($pdfTestFile);
+file_put_contents($pdfTestFile, "This is not a PDF.\n");
+$invalidPdfRejected = !kj_is_pdf_file($pdfTestFile);
+@unlink($pdfTestFile);
+$check('Only real PDF signatures are accepted', $validPdfDetected && $invalidPdfRejected);
 
 // Exercise connected workflows inside a transaction and roll everything back.
 $workflowChecks = [

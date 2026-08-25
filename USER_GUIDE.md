@@ -47,10 +47,10 @@ Additional information is completed after login. Administrator accounts cannot b
 1. Sign in with a Job Seeker account.
 2. Select **My profile** from the navigation menu.
 3. Complete the name, skills, education, and location fields.
-4. Optionally upload a CV in PDF, DOC, or DOCX format. The maximum size is 5 MB.
+4. Optionally upload a CV in PDF format. The maximum size is 5 MB.
 5. Select **Save profile**.
 
-An uploaded CV can be opened through **View uploaded CV**. Uploading a new CV replaces the current file, and **Remove current CV** deletes it from the profile. Only the owner and an authorized employer reviewing an application can access it.
+An uploaded CV can be opened through **View CV inside the system**. The PDF appears in the secure platform viewer without requiring a download. Uploading a new CV replaces the current file, and **Remove current CV** deletes it from the profile. Only the owner and an authorized employer reviewing an application can access it.
 
 ### 2. Find a vacancy
 
@@ -136,7 +136,7 @@ A rejected, pending, expired, closed, or fully filled vacancy is not visible to 
 2. Search applicants by name or skill.
 3. Filter applicants by education level when needed.
 4. Read the applicant's profile information and cover letter.
-5. Select **View CV** when a CV is available.
+5. Select **View CV inside system** when a PDF CV is available. It opens in the secure platform viewer.
 6. Choose the appropriate application status and select **Update status**.
 
 Updating a status creates an in-platform notification for the job seeker.
@@ -211,4 +211,4 @@ Messaging is enabled only for applications marked **Shortlisted** or **Hired**.
 
 ### My CV upload failed
 
-Confirm that the file is PDF, DOC, or DOCX and no larger than 5 MB.
+Confirm that the file is a valid PDF and no larger than 5 MB. DOC and DOCX files are not accepted.

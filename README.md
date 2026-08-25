@@ -91,7 +91,7 @@ tests/
 
 Passwords are stored using PHP password hashes, and successful sign-in creates a role-based PHP session. Job seekers and employers can create their own accounts from `register.php`.
 
-Job seekers can complete their profile after registration and optionally upload, replace, or remove one PDF, DOC, or DOCX CV (up to 5 MB). Employers can view an uploaded CV only from an application they are authorized to review.
+Job seekers can complete their profile after registration and optionally upload, replace, or remove one verified PDF CV (up to 5 MB). The seeker and an employer authorized through that seeker's application can read it in the authenticated in-system PDF viewer without downloading it first.
 
 ## Verification
 

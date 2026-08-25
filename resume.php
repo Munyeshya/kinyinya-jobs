@@ -13,7 +13,7 @@ $applicationId = (int) ($_GET['application_id'] ?? 0);
 
 if ($applicationId > 0) {
     $stmt = kj_db()->prepare(
-        'SELECT a.seeker_id, j.employer_id FROM applications a JOIN jobs j ON j.id = a.job_id WHERE a.id = ?'
+        'SELECT a.seeker_id, a.job_id, j.employer_id FROM applications a JOIN jobs j ON j.id = a.job_id WHERE a.id = ?'
     );
     $stmt->execute([$applicationId]);
     $application = $stmt->fetch();
@@ -37,10 +37,41 @@ if (!$filePath || !$baseDirectory || strpos($filePath, $baseDirectory . DIRECTOR
 }
 
 $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
-$mimeTypes = ['pdf' => 'application/pdf', 'doc' => 'application/msword', 'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-header('Content-Type: ' . ($mimeTypes[$extension] ?? 'application/octet-stream'));
+if ($extension !== 'pdf') {
+    http_response_code(415);
+    exit('Only PDF CV files can be viewed. Replace the current CV with a PDF.');
+}
+
+$raw = ($_GET['raw'] ?? '') === '1';
+if (!$raw) {
+    $viewerParameters = $applicationId > 0
+        ? ['application_id' => $applicationId, 'raw' => 1]
+        : ['seeker_id' => $seekerId, 'raw' => 1];
+    $viewerUrl = kj_url('resume.php?' . http_build_query($viewerParameters));
+    $backUrl = $role === 'employer'
+        ? kj_url('employer/applicants.php?job_id=' . (int) $application['job_id'])
+        : kj_url('seeker/profile.php');
+    $pageTitle = 'View CV - Kinyinya Jobs';
+    require __DIR__ . '/includes/header.php';
+    ?>
+    <section class="pagehead">
+      <p class="eyebrow">Secure PDF viewer</p>
+      <h1><?= htmlspecialchars($seeker['name']) ?> — CV</h1>
+      <p>The PDF is displayed inside Kinyinya Jobs and remains limited to authorized users.</p>
+    </section>
+    <p><a class="btn btn-ghost" href="<?= htmlspecialchars($backUrl) ?>">&larr; Back</a></p>
+    <div class="card pdf-viewer-card">
+      <iframe class="pdf-viewer" src="<?= htmlspecialchars($viewerUrl) ?>" title="<?= htmlspecialchars($seeker['name']) ?> CV"></iframe>
+    </div>
+    <?php
+    require __DIR__ . '/includes/footer.php';
+    exit;
+}
+
+header('Content-Type: application/pdf');
 header('Content-Length: ' . filesize($filePath));
-header('Content-Disposition: inline; filename="resume.' . $extension . '"');
+header('Content-Disposition: inline; filename="cv.pdf"');
 header('Cache-Control: private, no-store');
 header('X-Content-Type-Options: nosniff');
+header("Content-Security-Policy: frame-ancestors 'self'");
 readfile($filePath);
