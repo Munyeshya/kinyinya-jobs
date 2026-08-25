@@ -4,6 +4,21 @@ kj_require_role('admin');
 
 // #23 — Admin reviews a pending posting and approves or rejects it before
 // it becomes visible to job seekers.
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !kj_csrf_valid($_POST['csrf'] ?? null)) {
+    $_SESSION['flash'] = 'The request expired. Please try again.';
+    header('Location: dashboard.php');
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['user_id'], $_POST['user_action'])) {
+    $active = $_POST['user_action'] === 'activate';
+    $_SESSION['flash'] = kj_user_set_active((int) $_POST['user_id'], $active)
+        ? ($active ? 'User account activated.' : 'User account deactivated.')
+        : 'That account could not be changed.';
+    header('Location: dashboard.php');
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['job_id'], $_POST['action'])) {
     $jobId = (int) $_POST['job_id'];
     $action = $_POST['action'] === 'approve' ? 'approved' : 'rejected';
@@ -20,6 +35,7 @@ $jobs = kj_jobs();
 $apps = kj_applications();
 $seekers = kj_seekers();
 $employers = kj_employers();
+$users = kj_users();
 
 $pendingJobs = kj_jobs_pending();
 usort($pendingJobs, fn($a, $b) => strcmp($b['posted'], $a['posted']));
@@ -75,11 +91,13 @@ require __DIR__ . '/../includes/header.php';
     </div>
     <div class="actions">
       <form method="post" style="display:inline;">
+        <input type="hidden" name="csrf" value="<?= htmlspecialchars(kj_csrf_token()) ?>">
         <input type="hidden" name="job_id" value="<?= $job['id'] ?>">
         <input type="hidden" name="action" value="approve">
         <button class="btn btn-primary btn-sm" type="submit">Approve</button>
       </form>
       <form method="post" style="display:inline;">
+        <input type="hidden" name="csrf" value="<?= htmlspecialchars(kj_csrf_token()) ?>">
         <input type="hidden" name="job_id" value="<?= $job['id'] ?>">
         <input type="hidden" name="action" value="reject">
         <button class="btn btn-ghost btn-sm" type="submit">Reject</button>
@@ -139,6 +157,33 @@ require __DIR__ . '/../includes/header.php';
       <td><?= htmlspecialchars($emp['name']) ?></td>
       <td><?= htmlspecialchars($a['date']) ?></td>
       <td><span class="badge <?= $a['status'] ?>"><?= kj_status_label($a['status']) ?></span></td>
+    </tr>
+    <?php endforeach; ?>
+  </tbody>
+</table>
+
+<h2 class="section-title">User accounts</h2>
+<table class="kj">
+  <thead><tr><th>Email</th><th>Role</th><th>Created</th><th>Status</th><th>Action</th></tr></thead>
+  <tbody>
+    <?php foreach ($users as $account): ?>
+    <tr>
+      <td><?= htmlspecialchars($account['email']) ?></td>
+      <td><?= htmlspecialchars(ucfirst($account['role'])) ?></td>
+      <td><?= htmlspecialchars($account['created_at']) ?></td>
+      <td><span class="badge <?= $account['is_active'] ? 'active' : 'expired' ?>"><?= $account['is_active'] ? 'Active' : 'Inactive' ?></span></td>
+      <td>
+        <?php if ($account['role'] === 'admin'): ?>
+          <span style="color:var(--ink-soft); font-size:.8rem;">Protected</span>
+        <?php else: ?>
+          <form method="post">
+            <input type="hidden" name="csrf" value="<?= htmlspecialchars(kj_csrf_token()) ?>">
+            <input type="hidden" name="user_id" value="<?= (int) $account['id'] ?>">
+            <input type="hidden" name="user_action" value="<?= $account['is_active'] ? 'deactivate' : 'activate' ?>">
+            <button class="btn <?= $account['is_active'] ? 'btn-danger' : 'btn-primary' ?> btn-sm" type="submit"><?= $account['is_active'] ? 'Deactivate' : 'Activate' ?></button>
+          </form>
+        <?php endif; ?>
+      </td>
     </tr>
     <?php endforeach; ?>
   </tbody>

@@ -34,7 +34,7 @@ require __DIR__ . '/../includes/header.php';
 <section class="pagehead">
   <p class="eyebrow"><?= htmlspecialchars($job['category']) ?> - <?= htmlspecialchars($job['type']) ?></p>
   <h1><?= htmlspecialchars($job['title']) ?></h1>
-  <p><?= htmlspecialchars($employer['name']) ?> - Deadline <?= htmlspecialchars($job['deadline']) ?></p>
+  <p><?= htmlspecialchars($employer['name']) ?> - <?= htmlspecialchars($job['location']) ?> - Deadline <?= htmlspecialchars($job['deadline']) ?></p>
 </section>
 
 <div class="grid-2 job-detail-grid">

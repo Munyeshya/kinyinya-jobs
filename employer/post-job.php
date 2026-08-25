@@ -2,16 +2,23 @@
 require_once __DIR__ . '/../includes/data.php';
 kj_require_role('employer');
 $employer = kj_current_user();
+$formError = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!kj_csrf_valid($_POST['csrf'] ?? null)) {
-        $_SESSION['flash'] = 'The form expired. Please try again.';
+        $formError = 'The form expired. Please try again.';
+    } elseif (trim($_POST['title'] ?? '') === '' || trim($_POST['location'] ?? '') === '' || empty($_POST['deadline'])) {
+        $formError = 'Job title, location, and deadline are required.';
+    } elseif (strtotime($_POST['deadline']) < strtotime('today')) {
+        $formError = 'The deadline must be today or a future date.';
+    } elseif ((int) ($_POST['salary_max'] ?? 0) > 0 && (int) ($_POST['salary_max'] ?? 0) < (int) ($_POST['salary_min'] ?? 0)) {
+        $formError = 'Maximum salary cannot be lower than minimum salary.';
     } else {
         kj_job_create($employer['id'], $_POST);
         $_SESSION['flash'] = 'Job posting submitted. It will go live once an admin reviews and approves it.';
+        header('Location: dashboard.php');
+        exit;
     }
-    header('Location: dashboard.php');
-    exit;
 }
 
 $pageTitle = 'Post a job — Kinyinya Jobs';
@@ -21,8 +28,10 @@ require __DIR__ . '/../includes/header.php';
 <section class="pagehead">
   <p class="eyebrow">Employer · New posting</p>
   <h1>Post a job vacancy</h1>
-  <p>Fields marked with the section headers below map to the three-step posting form described in the platform design.</p>
+  <p>Complete the short form below. New vacancies are sent to an administrator for approval before seekers can see them.</p>
 </section>
+
+<?php if ($formError): ?><div class="flash error"><?= htmlspecialchars($formError) ?></div><?php endif; ?>
 
 <form method="post" class="card">
   <input type="hidden" name="csrf" value="<?= htmlspecialchars(kj_csrf_token()) ?>">
@@ -45,6 +54,10 @@ require __DIR__ . '/../includes/header.php';
   <div class="field">
     <label for="category">Category</label>
     <input id="category" name="category" type="text" placeholder="e.g. Retail, IT, Construction">
+  </div>
+  <div class="field">
+    <label for="location">Job location</label>
+    <input id="location" name="location" required value="Kinyinya" placeholder="e.g. Kinyinya, Gasabo">
   </div>
 
   <h3>2. Detailed description</h3>

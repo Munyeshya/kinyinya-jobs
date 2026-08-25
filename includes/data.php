@@ -2,18 +2,25 @@
 /**
  * Kinyinya Jobs — data layer.
  *
- * All records (employers, seekers, jobs, applications, messages) live in
+ * All records (employers, seekers, jobs, applications, messages, notifications) live in
  * the MySQL `kinyinya_jobs` database — see database/schema.sql and
  * database/seed.sql. $_SESSION is used only for lightweight per-visitor
  * state: who is logged in (role/user_id) and one-off flash messages.
- * Every page still calls the same kj_*() helper functions as before, so
- * only this file (plus the small mutators used by the post/apply/review
- * forms) needed to change when moving off the in-memory demo store.
+ * Every page calls the shared kj_*() helpers so database access and validation
+ * remain in one place.
  */
 
 require_once __DIR__ . '/db.php';
 
 if (session_status() === PHP_SESSION_NONE) {
+    $isHttps = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => '/',
+        'secure' => $isHttps,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
     session_start();
 }
 
@@ -47,15 +54,16 @@ function kj_jobs_for_employer($employer_id): array {
  */
 function kj_job_create(int $employer_id, array $data): int {
     $stmt = kj_db()->prepare(
-        'INSERT INTO jobs (employer_id, title, type, category, description, requirements,
+        'INSERT INTO jobs (employer_id, title, type, category, location, description, requirements,
                             salary_min, salary_max, deadline, posted, active, status, views)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, \'pending\', 0)'
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, \'pending\', 0)'
     );
     $stmt->execute([
         $employer_id,
         trim($data['title'] ?? 'Untitled position') ?: 'Untitled position',
         $data['type'] ?? 'Full-time',
         trim($data['category'] ?? 'General') ?: 'General',
+        trim($data['location'] ?? 'Kinyinya') ?: 'Kinyinya',
         trim($data['description'] ?? ''),
         trim($data['requirements'] ?? ''),
         (int) ($data['salary_min'] ?? 0),
@@ -79,7 +87,7 @@ function kj_job_set_status(int $job_id, string $status): bool {
 
 function kj_job_update_for_employer(int $job_id, int $employer_id, array $data): bool {
     $stmt = kj_db()->prepare(
-        'UPDATE jobs SET title = ?, type = ?, category = ?, description = ?, requirements = ?,
+        'UPDATE jobs SET title = ?, type = ?, category = ?, location = ?, description = ?, requirements = ?,
                          salary_min = ?, salary_max = ?, deadline = ?
          WHERE id = ? AND employer_id = ?'
     );
@@ -87,6 +95,7 @@ function kj_job_update_for_employer(int $job_id, int $employer_id, array $data):
         trim($data['title'] ?? ''),
         $data['type'] ?? 'Full-time',
         trim($data['category'] ?? 'General') ?: 'General',
+        trim($data['location'] ?? 'Kinyinya') ?: 'Kinyinya',
         trim($data['description'] ?? ''),
         trim($data['requirements'] ?? ''),
         max(0, (int) ($data['salary_min'] ?? 0)),
@@ -144,6 +153,17 @@ function kj_job_status_class($job): string {
 
 function kj_employers(): array {
     return kj_index_by_id(kj_db()->query('SELECT * FROM employers ORDER BY name')->fetchAll());
+}
+
+function kj_users(): array {
+    return kj_db()->query('SELECT id, email, role, is_active, created_at FROM users ORDER BY created_at DESC, id DESC')->fetchAll();
+}
+
+function kj_user_set_active(int $userId, bool $active): bool {
+    if ($userId <= 0) return false;
+    $stmt = kj_db()->prepare('UPDATE users SET is_active = ? WHERE id = ? AND role <> \'admin\'');
+    $stmt->execute([$active ? 1 : 0, $userId]);
+    return $stmt->rowCount() > 0;
 }
 
 function kj_employer($id) {
@@ -334,7 +354,7 @@ function kj_account_by_email(string $email) {
 
 function kj_login(string $email, string $password): bool {
     $account = kj_account_by_email($email);
-    if (!$account || !password_verify($password, $account['password_hash'])) return false;
+    if (!$account || !(int) $account['is_active'] || !password_verify($password, $account['password_hash'])) return false;
 
     $profileId = 0;
     if ($account['role'] === 'seeker') {

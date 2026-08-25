@@ -85,6 +85,7 @@ require __DIR__ . '/../includes/header.php';
       <h3><?= htmlspecialchars($job['title']) ?></h3>
       <div class="meta">
         <span><?= htmlspecialchars($job['type']) ?></span>
+        <span><?= htmlspecialchars($job['location']) ?></span>
         <span>Deadline <?= htmlspecialchars($job['deadline']) ?></span>
         <span><?= $job['views'] ?> views</span>
         <span class="badge <?= kj_job_status_class($job) ?>"><?= kj_job_status_label($job) ?></span>

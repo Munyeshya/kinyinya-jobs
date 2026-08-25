@@ -6,7 +6,7 @@ A multi-role dashboard for the Job Matching and Recruitment Platform (Umurenge K
 - **Employer** — post vacancies (pending admin approval), see applicants per posting, update application status
 - **Admin** — review and approve/reject new postings, platform-wide stats (users, postings, applications by status/category)
 
-Everything — employers, seekers, jobs, applications, messages — is stored in a MySQL database, not in `$_SESSION`. `$_SESSION` is only used for two lightweight things: which demo account you're currently signed in as, and one-off flash messages after a form submit. Every change you make (posting a job, applying, changing a status, approving a posting) is written to the database and stays there across restarts, other browsers, and other people using the app at the same time.
+Everything — employers, seekers, jobs, applications, messages, and notifications — is stored in MySQL. `$_SESSION` is used only for the signed-in user and one-off flash messages. Every change (posting a job, applying, changing a status, approving a posting) is written to the database and remains available across restarts and browsers.
 
 ## Two rules baked into the workflow
 
@@ -47,7 +47,7 @@ You need **PHP 8+ with the `pdo_mysql` extension** and a **MySQL or MariaDB serv
    php -S localhost:8000
    ```
 
-Then open **http://localhost:8000** and pick a role from the login screen — each role has a dropdown of demo accounts to sign in as (e.g. "Eric Niyonzima" for a seeker, "Kinyinya Tech Hub" for an employer). If you skipped seeding, the dropdowns will be empty since there are no employers/seekers yet — insert some, or run `database/seed.sql`.
+Then open **http://localhost:8000** and sign in with an account created during registration or with one of the optional seeded accounts. If you skipped seeding, simply create a seeker or employer account from the registration page.
 
 ## File structure
 
@@ -56,7 +56,7 @@ index.php              Landing page + email/password login
 register.php           Job-seeker and employer registration
 login.php / logout.php Session authentication
 database/
-  schema.sql            Table definitions (employers, seekers, jobs, applications, messages)
+  schema.sql            Table definitions (users, profiles, jobs, applications, messages, notifications)
   seed.sql               Demo data matching the original in-memory version
   create_user.sql         Creates the dedicated kinyinya_app MySQL user
 includes/
@@ -70,10 +70,12 @@ seeker/
   jobs.php                Search, filter, quick-apply
 employer/
   dashboard.php           Postings overview + applicant counts, approval/expiry status
-  post-job.php            3-step job posting form (submits as 'pending')
+  post-job.php            Simple job posting form (submits as 'pending')
   applicants.php           Review applicants, change status
 admin/
   dashboard.php           Pending-approval queue, platform-wide stats and tables
+tests/
+  smoke.php               Dependency-free database and security smoke checks
 ```
 
 ## Demonstration accounts
@@ -85,3 +87,13 @@ admin/
 Passwords are stored using PHP password hashes, and successful sign-in creates a role-based PHP session. Job seekers and employers can create their own accounts from `register.php`.
 
 Job seekers can complete their profile after registration and optionally upload one PDF, DOC, or DOCX CV (up to 5 MB). Employers can view an uploaded CV from the applicant review page.
+
+## Verification
+
+Run the dependency-free smoke checks from the project root:
+
+```bash
+php tests/smoke.php
+```
+
+The checks verify the core tables, job locations, CV storage, user activation, seeded accounts, visible vacancies, and CSRF-token support.

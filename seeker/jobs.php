@@ -6,12 +6,14 @@ $seeker = kj_current_user();
 $q = trim($_GET['q'] ?? '');
 $cat = $_GET['category'] ?? '';
 $type = $_GET['type'] ?? '';
+$location = trim($_GET['location'] ?? '');
 
-$jobs = array_filter(kj_jobs(), function ($j) use ($q, $cat, $type) {
+$jobs = array_filter(kj_jobs(), function ($j) use ($q, $cat, $type, $location) {
     if (!kj_job_is_visible($j)) return false; // must be admin-approved, active, and not past its deadline
-    if ($q && stripos($j['title'] . ' ' . $j['description'], $q) === false) return false;
+    if ($q && stripos($j['title'] . ' ' . $j['description'] . ' ' . $j['requirements'] . ' ' . $j['location'], $q) === false) return false;
     if ($cat && $j['category'] !== $cat) return false;
     if ($type && $j['type'] !== $type) return false;
+    if ($location && stripos($j['location'], $location) === false) return false;
     return true;
 });
 usort($jobs, fn($a, $b) => strcmp($b['posted'], $a['posted']));
@@ -19,6 +21,8 @@ usort($jobs, fn($a, $b) => strcmp($b['posted'], $a['posted']));
 $visibleJobs = array_filter(kj_jobs(), 'kj_job_is_visible');
 $categories = array_unique(array_map(fn($j) => $j['category'], $visibleJobs));
 $types = array_unique(array_map(fn($j) => $j['type'], $visibleJobs));
+$locations = array_unique(array_map(fn($j) => $j['location'], $visibleJobs));
+sort($locations);
 
 $pageTitle = 'Browse jobs — Kinyinya Jobs';
 require __DIR__ . '/../includes/header.php';
@@ -50,6 +54,10 @@ require __DIR__ . '/../includes/header.php';
         <?php endforeach; ?>
       </select>
     </div>
+    <div class="field">
+      <label>Location</label>
+      <select name="location"><option value="">All locations</option><?php foreach ($locations as $l): ?><option value="<?= htmlspecialchars($l) ?>" <?= $location === $l ? 'selected' : '' ?>><?= htmlspecialchars($l) ?></option><?php endforeach; ?></select>
+    </div>
   </div>
   <div class="field">
     <label>Job type</label>
@@ -78,6 +86,7 @@ require __DIR__ . '/../includes/header.php';
       <div class="meta">
         <span><?= htmlspecialchars($emp['name']) ?></span>
         <span><?= htmlspecialchars($job['type']) ?></span>
+        <span><?= htmlspecialchars($job['location']) ?></span>
         <span><?= kj_money($job['salary_min']) ?>–<?= kj_money($job['salary_max']) ?></span>
         <span>Deadline <?= htmlspecialchars($job['deadline']) ?></span>
       </div>

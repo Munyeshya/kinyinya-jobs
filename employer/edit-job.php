@@ -18,6 +18,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'The form expired. Refresh the page and try again.';
     } elseif (trim($_POST['title'] ?? '') === '' || empty($_POST['deadline'])) {
         $error = 'Job title and deadline are required.';
+    } elseif (strtotime($_POST['deadline']) < strtotime('today')) {
+        $error = 'The deadline must be today or a future date.';
     } elseif ($salaryMax && $salaryMax < $salaryMin) {
         $error = 'Maximum salary cannot be lower than minimum salary.';
     } else {
@@ -46,6 +48,7 @@ require __DIR__ . '/../includes/header.php';
     <div class="field"><label for="type">Employment type</label><select id="type" name="type"><?php foreach (['Full-time', 'Part-time', 'Contract', 'Temporary'] as $type): ?><option <?= $job['type'] === $type ? 'selected' : '' ?>><?= $type ?></option><?php endforeach; ?></select></div>
   </div>
   <div class="field"><label for="category">Category</label><input id="category" name="category" value="<?= htmlspecialchars($job['category']) ?>"></div>
+  <div class="field"><label for="location">Job location</label><input id="location" name="location" required value="<?= htmlspecialchars($job['location'] ?? 'Kinyinya') ?>"></div>
   <div class="field"><label for="description">Responsibilities</label><textarea id="description" name="description"><?= htmlspecialchars($job['description']) ?></textarea></div>
   <div class="field"><label for="requirements">Requirements</label><textarea id="requirements" name="requirements"><?= htmlspecialchars($job['requirements']) ?></textarea></div>
   <div class="grid-2">

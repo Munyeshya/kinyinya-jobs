@@ -21,6 +21,8 @@
 
 * { box-sizing: border-box; }
 
+:focus-visible { outline: 3px solid var(--ochre-400); outline-offset: 2px; }
+
 body {
   margin: 0;
   background: var(--paper);

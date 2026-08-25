@@ -57,7 +57,7 @@ require __DIR__ . '/../includes/header.php';
   </div>
   <div class="field"><label for="education">Education</label><input id="education" name="education" value="<?= htmlspecialchars($seeker['education']) ?>" placeholder="e.g. A2 Accounting"></div>
   <div class="field"><label for="skills">Skills</label><textarea id="skills" name="skills" placeholder="List relevant skills separated by commas"><?= htmlspecialchars($seeker['skills']) ?></textarea></div>
-  <div class="field"><label for="resume">CV / Resume</label><input id="resume" name="resume" type="file" accept=".pdf,.doc,.docx"><small>Optional. PDF, DOC, or DOCX up to 5 MB.</small><?php if (!empty($seeker['resume_url'])): ?><p><a href="<?= htmlspecialchars(kj_url($seeker['resume_url'])) ?>" target="_blank" rel="noopener">View uploaded CV</a></p><?php endif; ?></div>
+  <div class="field"><label for="resume">CV / Resume</label><input id="resume" name="resume" type="file" accept=".pdf,.doc,.docx"><small>Optional. PDF, DOC, or DOCX up to 5 MB.</small><?php if (!empty($seeker['resume_url'])): ?><p><a href="<?= htmlspecialchars(kj_url('resume.php?seeker_id=' . $seeker['id'])) ?>" target="_blank" rel="noopener">View uploaded CV</a></p><?php endif; ?></div>
   <button class="btn btn-primary" type="submit">Save profile</button>
 </form>
 <?php require __DIR__ . '/../includes/footer.php'; ?>

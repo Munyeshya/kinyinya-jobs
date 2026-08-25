@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
   email          VARCHAR(190) NOT NULL UNIQUE,
   password_hash  VARCHAR(255) NOT NULL,
   role           ENUM('seeker','employer','admin') NOT NULL,
+  is_active      TINYINT(1) NOT NULL DEFAULT 1,
   created_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -57,6 +58,7 @@ CREATE TABLE IF NOT EXISTS jobs (
   title         VARCHAR(150) NOT NULL,
   type          VARCHAR(50) NOT NULL DEFAULT 'Full-time',
   category      VARCHAR(100) NOT NULL DEFAULT 'General',
+  location      VARCHAR(150) NOT NULL DEFAULT 'Kinyinya',
   description   TEXT NULL,
   requirements  TEXT NULL,
   salary_min    INT UNSIGNED NOT NULL DEFAULT 0,
