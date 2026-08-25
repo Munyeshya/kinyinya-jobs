@@ -173,6 +173,11 @@ function kj_seeker_update(int $id, array $data): bool {
     ]);
 }
 
+function kj_seeker_resume_update(int $id, string $resumeUrl): bool {
+    $stmt = kj_db()->prepare('UPDATE seekers SET resume_url = ? WHERE id = ?');
+    return $stmt->execute([$resumeUrl, $id]);
+}
+
 function kj_employer_update(int $id, array $data): bool {
     $stmt = kj_db()->prepare('UPDATE employers SET name = ?, industry = ?, location = ?, about = ? WHERE id = ?');
     return $stmt->execute([

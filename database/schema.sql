@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS seekers (
   skills     VARCHAR(255) NOT NULL,
   education  VARCHAR(150) NOT NULL,
   location   VARCHAR(150) NOT NULL,
+  resume_url VARCHAR(255) NULL,
   CONSTRAINT fk_seekers_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

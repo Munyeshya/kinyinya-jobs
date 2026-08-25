@@ -86,6 +86,11 @@ require __DIR__ . '/../includes/header.php';
           <span>Applied <?= htmlspecialchars($a['date']) ?></span>
         </div>
         <p>“<?= htmlspecialchars($a['cover_letter']) ?>”</p>
+        <?php if (!empty($seeker['resume_url'])): ?>
+          <p><a class="btn btn-ghost btn-sm" href="<?= htmlspecialchars(kj_url($seeker['resume_url'])) ?>" target="_blank" rel="noopener">View CV</a></p>
+        <?php else: ?>
+          <p style="color:var(--ink-soft); font-size:.82rem;">No CV uploaded.</p>
+        <?php endif; ?>
       </div>
       <div style="min-width:220px;">
         <span class="badge <?= $a['status'] ?>"><?= kj_status_label($a['status']) ?></span>
