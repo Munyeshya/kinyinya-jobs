@@ -2,6 +2,11 @@
 require_once __DIR__ . '/includes/data.php';
 
 $role = $_SESSION['role'] ?? '';
+if (!in_array($role, ['seeker', 'employer'], true)) {
+    http_response_code(403);
+    exit('You are not allowed to access this CV.');
+}
+kj_require_role($role);
 $currentProfileId = (int) ($_SESSION['user_id'] ?? 0);
 $seekerId = (int) ($_GET['seeker_id'] ?? 0);
 $applicationId = (int) ($_GET['application_id'] ?? 0);
@@ -36,4 +41,6 @@ $mimeTypes = ['pdf' => 'application/pdf', 'doc' => 'application/msword', 'docx' 
 header('Content-Type: ' . ($mimeTypes[$extension] ?? 'application/octet-stream'));
 header('Content-Length: ' . filesize($filePath));
 header('Content-Disposition: inline; filename="resume.' . $extension . '"');
+header('Cache-Control: private, no-store');
+header('X-Content-Type-Options: nosniff');
 readfile($filePath);

@@ -16,15 +16,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $salaryMax = max(0, (int) ($_POST['salary_max'] ?? 0));
     if (!kj_csrf_valid($_POST['csrf'] ?? null)) {
         $error = 'The form expired. Refresh the page and try again.';
-    } elseif (trim($_POST['title'] ?? '') === '' || empty($_POST['deadline'])) {
-        $error = 'Job title and deadline are required.';
+    } elseif (trim($_POST['title'] ?? '') === '' || trim($_POST['location'] ?? '') === '' || empty($_POST['deadline'])) {
+        $error = 'Job title, location, and deadline are required.';
     } elseif (strtotime($_POST['deadline']) < strtotime('today')) {
         $error = 'The deadline must be today or a future date.';
     } elseif ($salaryMax && $salaryMax < $salaryMin) {
         $error = 'Maximum salary cannot be lower than minimum salary.';
     } else {
         kj_job_update_for_employer($jobId, (int) $employer['id'], $_POST);
-        $_SESSION['flash'] = 'Job posting updated.';
+        $_SESSION['flash'] = 'Job posting updated and sent to an administrator for approval.';
         header('Location: dashboard.php');
         exit;
     }
@@ -37,7 +37,7 @@ require __DIR__ . '/../includes/header.php';
 <section class="pagehead">
   <p class="eyebrow">Employer - Vacancy management</p>
   <h1>Edit job posting</h1>
-  <p>Update the vacancy information shown to job seekers.</p>
+  <p>Update the vacancy information. Every edit is sent to an administrator for approval before it is shown to job seekers again.</p>
 </section>
 <?php if ($error): ?><div class="flash error"><?= htmlspecialchars($error) ?></div><?php endif; ?>
 <form method="post" class="card">
@@ -56,7 +56,7 @@ require __DIR__ . '/../includes/header.php';
     <div class="field"><label for="salary_max">Maximum salary (RWF)</label><input id="salary_max" name="salary_max" type="number" min="0" value="<?= (int) $job['salary_max'] ?>"></div>
   </div>
   <div class="field"><label for="deadline">Application deadline</label><input id="deadline" name="deadline" type="date" required value="<?= htmlspecialchars($job['deadline']) ?>"></div>
-  <button class="btn btn-primary" type="submit">Save changes</button>
+  <button class="btn btn-primary" type="submit">Save and resubmit</button>
   <a class="btn btn-ghost" href="dashboard.php">Cancel</a>
 </form>
 <?php require __DIR__ . '/../includes/footer.php'; ?>

@@ -86,7 +86,11 @@ require __DIR__ . '/../includes/header.php';
           <span><?= htmlspecialchars($seeker['education']) ?></span>
           <span>Applied <?= htmlspecialchars($a['date']) ?></span>
         </div>
-        <p>“<?= htmlspecialchars($a['cover_letter']) ?>”</p>
+        <?php if (trim((string) $a['cover_letter']) !== ''): ?>
+          <p>&ldquo;<?= htmlspecialchars($a['cover_letter']) ?>&rdquo;</p>
+        <?php else: ?>
+          <p style="color:var(--ink-soft); font-size:.82rem;">No cover letter provided.</p>
+        <?php endif; ?>
         <?php if (!empty($seeker['resume_url'])): ?>
           <p><a class="btn btn-ghost btn-sm" href="<?= htmlspecialchars(kj_url('resume.php?application_id=' . $a['id'])) ?>" target="_blank" rel="noopener">View CV</a></p>
         <?php else: ?>

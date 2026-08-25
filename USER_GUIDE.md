@@ -50,7 +50,7 @@ Additional information is completed after login. Administrator accounts cannot b
 4. Optionally upload a CV in PDF, DOC, or DOCX format. The maximum size is 5 MB.
 5. Select **Save profile**.
 
-An uploaded CV can be opened through **View uploaded CV**. Only the owner and an authorized employer reviewing an application can access it.
+An uploaded CV can be opened through **View uploaded CV**. Uploading a new CV replaces the current file, and **Remove current CV** deletes it from the profile. Only the owner and an authorized employer reviewing an application can access it.
 
 ### 2. Find a vacancy
 
@@ -111,7 +111,7 @@ The **Message** action becomes available when an application is **Shortlisted** 
    - Requirements
    - Minimum and maximum salary
    - Application deadline
-3. Select **Publish posting**.
+3. Select **Submit for approval**.
 
 The deadline cannot be in the past, and the maximum salary cannot be lower than the minimum salary. Every new vacancy remains **Pending** until an administrator approves or rejects it.
 
@@ -120,6 +120,7 @@ The deadline cannot be in the past, and the maximum salary cannot be lower than 
 The Employer Dashboard lists all company vacancies and their visibility status.
 
 - Select **Edit** to update vacancy details.
+- An edited vacancy returns to **Pending** so an administrator can approve the updated information before it becomes public again.
 - Select **Close** to stop receiving applications.
 - Select **Reopen** to make a manually closed vacancy available again.
 - Expired vacancies close automatically and cannot be reopened without changing the deadline.
@@ -155,7 +156,7 @@ Administrator accounts are created during system setup or directly by an authori
 1. Sign in with an Administrator account.
 2. Open **Overview**.
 3. Review the **Pending approvals** section.
-4. Read the vacancy title, employer, category, type, description, requirements, and deadline.
+4. Read the vacancy title, employer, category, type, location, salary, description, requirements, and deadline.
 5. Select **Approve** to make the vacancy visible to job seekers.
 6. Select **Reject** to keep the vacancy hidden.
 

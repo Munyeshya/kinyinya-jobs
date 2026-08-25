@@ -6,6 +6,7 @@ if (!in_array($role, ['seeker', 'employer'], true)) {
     header('Location: ' . kj_url('index.php'));
     exit;
 }
+kj_require_role($role);
 
 $applicationId = (int) ($_GET['application_id'] ?? $_POST['application_id'] ?? 0);
 $stmt = kj_db()->prepare(
@@ -51,7 +52,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         kj_message_create($applicationId, $role, $body);
         $recipientId = $role === 'seeker' ? (int) $application['employer_user_id'] : (int) $application['seeker_user_id'];
         $senderName = $role === 'seeker' ? $application['seeker_name'] : $application['employer_name'];
-        kj_notification_create($recipientId, 'new_message', $senderName . ' sent you a message about ' . $application['title'] . '.');
+        if ($recipientId > 0) {
+            kj_notification_create($recipientId, 'new_message', $senderName . ' sent you a message about ' . $application['title'] . '.');
+        }
         header('Location: ' . kj_url('messages.php?application_id=' . $applicationId));
         exit;
     }

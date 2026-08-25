@@ -88,7 +88,7 @@ tests/
 
 Passwords are stored using PHP password hashes, and successful sign-in creates a role-based PHP session. Job seekers and employers can create their own accounts from `register.php`.
 
-Job seekers can complete their profile after registration and optionally upload one PDF, DOC, or DOCX CV (up to 5 MB). Employers can view an uploaded CV from the applicant review page.
+Job seekers can complete their profile after registration and optionally upload, replace, or remove one PDF, DOC, or DOCX CV (up to 5 MB). Employers can view an uploaded CV only from an application they are authorized to review.
 
 ## Verification
 
@@ -98,4 +98,4 @@ Run the dependency-free smoke checks from the project root:
 php tests/smoke.php
 ```
 
-The checks verify the core tables, job locations, CV storage, user activation, seeded accounts, visible vacancies, and CSRF-token support.
+The checks verify the schema, password hashing, CSRF support, job visibility and approval rules, edit reapproval, deadline enforcement, and duplicate-application protection. They work with or without demonstration data and roll back their temporary workflow records.

@@ -26,6 +26,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['job_id'], $_POST['act
         $_SESSION['flash'] = $action === 'approved'
             ? 'Job posting approved — it is now visible to job seekers.'
             : 'Job posting rejected — it will not be shown to job seekers.';
+    } else {
+        $reviewedJob = kj_job($jobId);
+        $_SESSION['flash'] = $action === 'approved' && $reviewedJob && kj_job_is_expired($reviewedJob)
+            ? 'That posting cannot be approved because its deadline has passed. Ask the employer to edit and resubmit it.'
+            : 'That posting could not be updated.';
     }
     header('Location: dashboard.php');
     exit;
@@ -83,6 +88,8 @@ require __DIR__ . '/../includes/header.php';
       <div class="meta">
         <span><?= htmlspecialchars($emp['name']) ?></span>
         <span><?= htmlspecialchars($job['type']) ?></span>
+        <span><?= htmlspecialchars($job['location']) ?></span>
+        <span><?= htmlspecialchars(kj_salary_range($job)) ?></span>
         <span>Deadline <?= htmlspecialchars($job['deadline']) ?></span>
         <span class="badge under_review">Pending review</span>
       </div>
@@ -198,7 +205,7 @@ require __DIR__ . '/../includes/header.php';
       <td><?= htmlspecialchars($e['name']) ?></td>
       <td><?= htmlspecialchars($e['industry']) ?></td>
       <td><?= htmlspecialchars($e['location']) ?></td>
-      <td><?= count(kj_jobs_for_employer($e['id'])) ?></td>
+      <td><?= count(array_filter(kj_jobs_for_employer($e['id']), 'kj_job_is_visible')) ?></td>
     </tr>
     <?php endforeach; ?>
   </tbody>

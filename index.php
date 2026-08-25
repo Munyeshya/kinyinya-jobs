@@ -26,33 +26,6 @@ require __DIR__ . '/includes/header.php';
     </div>
   </div>
 
-  <div class="hero-device" aria-hidden="true">
-    <div class="device-frame">
-      <div class="device-camera"></div>
-      <div class="device-screen">
-        <div class="device-nav"><strong>KJ</strong><span>Jobs</span><span>Applications</span><span>Profiles</span></div>
-        <div class="device-content">
-          <div class="device-message">
-            <small>Local recruitment network</small>
-            <strong>Find the right match in Kinyinya.</strong>
-            <span>Search · Apply · Track</span>
-          </div>
-          <div class="candidate-stack">
-            <div class="candidate-card candidate-one"><b>AN</b><span><strong>Aline N.</strong><small>Customer service</small></span></div>
-            <div class="candidate-card candidate-two"><b>IM</b><span><strong>Ivan M.</strong><small>IT support</small></span></div>
-            <div class="candidate-card candidate-three"><b>CK</b><span><strong>Chantal K.</strong><small>Accounting</small></span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="device-base"></div>
-  </div>
-
-  <div class="hero-trust-grid" aria-label="Platform benefits">
-    <div><span class="trust-symbol">✓</span><p><strong>Reviewed vacancies</strong><small>Jobs become public after administrator approval.</small></p></div>
-    <div><span class="trust-symbol">↗</span><p><strong>Broader local reach</strong><small>Employers connect beyond personal networks.</small></p></div>
-    <div><span class="trust-symbol">◎</span><p><strong>Transparent progress</strong><small>Applicants can follow every status change.</small></p></div>
-  </div>
 </section>
 
 <section class="home-benefits" aria-labelledby="why-kinyinya-jobs">

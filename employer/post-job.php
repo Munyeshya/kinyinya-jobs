@@ -3,8 +3,20 @@ require_once __DIR__ . '/../includes/data.php';
 kj_require_role('employer');
 $employer = kj_current_user();
 $formError = '';
+$form = [
+    'title' => '',
+    'type' => 'Full-time',
+    'category' => '',
+    'location' => 'Kinyinya',
+    'description' => '',
+    'requirements' => '',
+    'salary_min' => '',
+    'salary_max' => '',
+    'deadline' => date('Y-m-d', strtotime('+30 days')),
+];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $form = array_merge($form, array_intersect_key($_POST, $form));
     if (!kj_csrf_valid($_POST['csrf'] ?? null)) {
         $formError = 'The form expired. Please try again.';
     } elseif (trim($_POST['title'] ?? '') === '' || trim($_POST['location'] ?? '') === '' || empty($_POST['deadline'])) {
@@ -39,54 +51,53 @@ require __DIR__ . '/../includes/header.php';
   <div class="grid-2">
     <div class="field">
       <label for="title">Job title</label>
-      <input id="title" name="title" type="text" required placeholder="e.g. Cashier">
+      <input id="title" name="title" type="text" required value="<?= htmlspecialchars($form['title']) ?>" placeholder="e.g. Cashier">
     </div>
     <div class="field">
       <label for="type">Employment type</label>
       <select id="type" name="type">
-        <option>Full-time</option>
-        <option>Part-time</option>
-        <option>Contract</option>
-        <option>Temporary</option>
+        <?php foreach (['Full-time', 'Part-time', 'Contract', 'Temporary'] as $type): ?>
+          <option <?= $form['type'] === $type ? 'selected' : '' ?>><?= $type ?></option>
+        <?php endforeach; ?>
       </select>
     </div>
   </div>
   <div class="field">
     <label for="category">Category</label>
-    <input id="category" name="category" type="text" placeholder="e.g. Retail, IT, Construction">
+    <input id="category" name="category" type="text" value="<?= htmlspecialchars($form['category']) ?>" placeholder="e.g. Retail, IT, Construction">
   </div>
   <div class="field">
     <label for="location">Job location</label>
-    <input id="location" name="location" required value="Kinyinya" placeholder="e.g. Kinyinya, Gasabo">
+    <input id="location" name="location" required value="<?= htmlspecialchars($form['location']) ?>" placeholder="e.g. Kinyinya, Gasabo">
   </div>
 
   <h3>2. Detailed description</h3>
   <div class="field">
     <label for="description">Responsibilities</label>
-    <textarea id="description" name="description" placeholder="Describe day-to-day duties"></textarea>
+    <textarea id="description" name="description" placeholder="Describe day-to-day duties"><?= htmlspecialchars($form['description']) ?></textarea>
   </div>
   <div class="field">
     <label for="requirements">Requirements / qualifications</label>
-    <textarea id="requirements" name="requirements" placeholder="Education, experience, skills"></textarea>
+    <textarea id="requirements" name="requirements" placeholder="Education, experience, skills"><?= htmlspecialchars($form['requirements']) ?></textarea>
   </div>
 
   <h3>3. Application details</h3>
   <div class="grid-2">
     <div class="field">
       <label for="salary_min">Salary range — minimum (RWF)</label>
-      <input id="salary_min" name="salary_min" type="number" min="0" step="1000">
+      <input id="salary_min" name="salary_min" type="number" min="0" step="1000" value="<?= htmlspecialchars($form['salary_min']) ?>">
     </div>
     <div class="field">
       <label for="salary_max">Salary range — maximum (RWF)</label>
-      <input id="salary_max" name="salary_max" type="number" min="0" step="1000">
+      <input id="salary_max" name="salary_max" type="number" min="0" step="1000" value="<?= htmlspecialchars($form['salary_max']) ?>">
     </div>
   </div>
   <div class="field">
     <label for="deadline">Application deadline</label>
-    <input id="deadline" name="deadline" type="date" value="<?= date('Y-m-d', strtotime('+30 days')) ?>">
+    <input id="deadline" name="deadline" type="date" value="<?= htmlspecialchars($form['deadline']) ?>">
   </div>
 
-  <button class="btn btn-primary" type="submit">Publish posting</button>
+  <button class="btn btn-primary" type="submit">Submit for approval</button>
   <a class="btn btn-ghost" href="dashboard.php">Cancel</a>
 </form>
 

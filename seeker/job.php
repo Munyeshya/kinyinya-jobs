@@ -10,6 +10,7 @@ if (!$job || !kj_job_is_visible($job)) {
     header('Location: ' . kj_url('seeker/jobs.php'));
     exit;
 }
+kj_job_record_view($jobId);
 
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -44,7 +45,7 @@ require __DIR__ . '/../includes/header.php';
     <h2 class="section-title">Requirements</h2>
     <p><?= nl2br(htmlspecialchars($job['requirements'])) ?></p>
     <h2 class="section-title">Salary range</h2>
-    <p><?= kj_money($job['salary_min']) ?> - <?= kj_money($job['salary_max']) ?></p>
+    <p><?= htmlspecialchars(kj_salary_range($job)) ?></p>
   </article>
   <aside>
     <div class="card">

@@ -50,6 +50,7 @@ require __DIR__ . '/../includes/header.php';
 <div class="stats">
   <div class="stat"><span class="n"><?= count($myJobs) ?></span><span class="l">Total postings</span></div>
   <div class="stat accent"><span class="n"><?= $liveJobs ?></span><span class="l">Live &amp; visible to seekers</span></div>
+  <div class="stat"><span class="n"><?= $totalApps ?></span><span class="l">Total applications</span></div>
   <div class="stat warn"><span class="n"><?= $newApps ?></span><span class="l">New, unreviewed</span></div>
 </div>
 

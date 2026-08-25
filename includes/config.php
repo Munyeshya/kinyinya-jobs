@@ -44,7 +44,9 @@ function kj_url(string $path = ''): string {
     if ($documentRoot && $projectRoot) {
         $doc = str_replace('\\', '/', rtrim($documentRoot, '/\\'));
         $project = str_replace('\\', '/', rtrim($projectRoot, '/\\'));
-        if (stripos($project, $doc) === 0) $base = substr($project, strlen($doc));
+        if ($project === $doc || stripos($project, $doc . '/') === 0) {
+            $base = substr($project, strlen($doc));
+        }
     }
     return rtrim($base, '/') . '/' . ltrim($path, '/');
 }

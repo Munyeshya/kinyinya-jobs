@@ -12,7 +12,7 @@ function kj_base($path) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title><?= $pageTitle ?? 'Kinyinya Jobs' ?></title>
+<title><?= htmlspecialchars($pageTitle ?? 'Kinyinya Jobs', ENT_QUOTES, 'UTF-8') ?></title>
 <link rel="stylesheet" href="<?= kj_base('assets/style.css') ?>">
 </head>
 <body>

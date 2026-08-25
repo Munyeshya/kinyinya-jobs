@@ -1,0 +1,5 @@
+Options -Indexes
+
+<FilesMatch "\.(sql|md|docx|zip)$">
+  Require all denied
+</FilesMatch>

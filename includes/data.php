@@ -66,8 +66,8 @@ function kj_job_create(int $employer_id, array $data): int {
         trim($data['location'] ?? 'Kinyinya') ?: 'Kinyinya',
         trim($data['description'] ?? ''),
         trim($data['requirements'] ?? ''),
-        (int) ($data['salary_min'] ?? 0),
-        (int) ($data['salary_max'] ?? 0),
+        max(0, (int) ($data['salary_min'] ?? 0)),
+        max(0, (int) ($data['salary_max'] ?? 0)),
         $data['deadline'] ?? date('Y-m-d', strtotime('+30 days')),
         date('Y-m-d'),
     ]);
@@ -80,15 +80,26 @@ function kj_jobs_pending(): array {
 
 function kj_job_set_status(int $job_id, string $status): bool {
     if (!in_array($status, ['pending', 'approved', 'rejected'], true)) return false;
+    $job = kj_job($job_id);
+    if (!$job || ($status === 'approved' && kj_job_is_expired($job))) return false;
     $stmt = kj_db()->prepare('UPDATE jobs SET status = ? WHERE id = ?');
     $stmt->execute([$status, $job_id]);
-    return $stmt->rowCount() > 0;
+    if ($stmt->rowCount() === 0) return false;
+
+    $employer = kj_employer((int) $job['employer_id']);
+    if ($employer && !empty($employer['user_id'])) {
+        $message = $status === 'approved'
+            ? 'Your job posting ' . $job['title'] . ' was approved and is now visible to job seekers.'
+            : 'Your job posting ' . $job['title'] . ' was not approved. Review and edit it before resubmitting.';
+        kj_notification_create((int) $employer['user_id'], 'job_review', $message);
+    }
+    return true;
 }
 
 function kj_job_update_for_employer(int $job_id, int $employer_id, array $data): bool {
     $stmt = kj_db()->prepare(
         'UPDATE jobs SET title = ?, type = ?, category = ?, location = ?, description = ?, requirements = ?,
-                         salary_min = ?, salary_max = ?, deadline = ?
+                         salary_min = ?, salary_max = ?, deadline = ?, active = 1, status = \'pending\'
          WHERE id = ? AND employer_id = ?'
     );
     $stmt->execute([
@@ -104,7 +115,14 @@ function kj_job_update_for_employer(int $job_id, int $employer_id, array $data):
         $job_id,
         $employer_id,
     ]);
-    return true;
+    return $stmt->rowCount() > 0;
+}
+
+function kj_job_record_view(int $job_id): void {
+    if ($job_id <= 0 || !empty($_SESSION['viewed_jobs'][$job_id])) return;
+    $stmt = kj_db()->prepare('UPDATE jobs SET views = views + 1 WHERE id = ?');
+    $stmt->execute([$job_id]);
+    if ($stmt->rowCount() > 0) $_SESSION['viewed_jobs'][$job_id] = true;
 }
 
 function kj_job_set_active_for_employer(int $job_id, int $employer_id, bool $active): bool {
@@ -193,7 +211,7 @@ function kj_seeker_update(int $id, array $data): bool {
     ]);
 }
 
-function kj_seeker_resume_update(int $id, string $resumeUrl): bool {
+function kj_seeker_resume_update(int $id, ?string $resumeUrl): bool {
     $stmt = kj_db()->prepare('UPDATE seekers SET resume_url = ? WHERE id = ?');
     return $stmt->execute([$resumeUrl, $id]);
 }
@@ -242,7 +260,12 @@ function kj_application_create(int $seeker_id, int $job_id, string $cover_letter
     $stmt = kj_db()->prepare(
         "INSERT INTO applications (job_id, seeker_id, date, status, cover_letter) VALUES (?, ?, ?, 'submitted', ?)"
     );
-    $stmt->execute([$job_id, $seeker_id, date('Y-m-d'), $cover_letter ?: 'Application submitted via quick apply.']);
+    try {
+        $stmt->execute([$job_id, $seeker_id, date('Y-m-d'), $cover_letter !== '' ? $cover_letter : null]);
+    } catch (PDOException $exception) {
+        if ((string) $exception->getCode() === '23000') return null;
+        throw $exception;
+    }
     $applicationId = (int) kj_db()->lastInsertId();
 
     $employer = kj_employer($job['employer_id']);
@@ -417,7 +440,17 @@ function kj_current_user() {
 }
 
 function kj_require_role($role) {
-    if (!isset($_SESSION['role']) || $_SESSION['role'] !== $role) {
+    $accountId = (int) ($_SESSION['account_id'] ?? 0);
+    $sessionRole = $_SESSION['role'] ?? '';
+    $accountActive = false;
+    if ($accountId > 0 && $sessionRole === $role) {
+        $stmt = kj_db()->prepare('SELECT 1 FROM users WHERE id = ? AND role = ? AND is_active = 1');
+        $stmt->execute([$accountId, $sessionRole]);
+        $accountActive = (bool) $stmt->fetchColumn();
+    }
+    if (!$accountActive) {
+        unset($_SESSION['account_id'], $_SESSION['user_id'], $_SESSION['role']);
+        $_SESSION['flash'] = 'Please sign in with an active ' . str_replace('_', ' ', $role) . ' account.';
         header('Location: ' . kj_url('index.php'));
         exit;
     }
@@ -425,4 +458,13 @@ function kj_require_role($role) {
 
 function kj_money($amount) {
     return number_format((float) $amount, 0) . ' RWF';
+}
+
+function kj_salary_range(array $job): string {
+    $minimum = max(0, (int) ($job['salary_min'] ?? 0));
+    $maximum = max(0, (int) ($job['salary_max'] ?? 0));
+    if ($minimum === 0 && $maximum === 0) return 'Salary not specified';
+    if ($minimum === 0) return 'Up to ' . kj_money($maximum);
+    if ($maximum === 0) return 'From ' . kj_money($minimum);
+    return kj_money($minimum) . ' - ' . kj_money($maximum);
 }
