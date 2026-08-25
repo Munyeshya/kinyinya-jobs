@@ -83,3 +83,5 @@ admin/
 - Administrator: `admin@kinyinya.rw` / `Admin123!`
 
 Passwords are stored using PHP password hashes, and successful sign-in creates a role-based PHP session. Job seekers and employers can create their own accounts from `register.php`.
+
+Job seekers can complete their profile after registration and optionally upload one PDF, DOC, or DOCX CV (up to 5 MB). Employers can view an uploaded CV from the applicant review page.

@@ -1,3 +1,5 @@
 includes/local-config.php
 .codex_*
 .runtime/
+uploads/resumes/*
+!uploads/resumes/.htaccess
